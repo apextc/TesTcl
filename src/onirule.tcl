@@ -5,9 +5,11 @@ namespace eval ::testcl {
   variable expectedEvent
   variable variables
   namespace export rule
+  namespace export ltm
   namespace export when
   namespace export event
   namespace export run
+  namespace export setvar
 }
 
 # testcl::rule --
@@ -29,7 +31,7 @@ proc ::testcl::rule {ruleName body} {
   log::log info "rule $ruleName finished, return code: $rc  result: $result"
 
   if {$rc != 2000} {
-    log::log error "Expected return code 200 from calling when, got $rc"
+    log::log error "Expected return code 2000 from calling when, got $rc"
     log::log error "Error info: $::errorInfo"
     log::log error "++++++++++++++++++++++++++++++++++++++++++"	  	  
     error "Expected return code 2000 from calling when, got $rc"
@@ -171,6 +173,47 @@ proc ::testcl::run {irule rulename {vars {}}} {
     error "Running irule $irule failed: $result"	
   }
   testcl::assertStringEquals "rule $rulename" $result
+}
+
+# testcl::ltm --
+#
+# Allows for ltm configuration keyword within iRule syntax 
+#  e.g. ltm rule test_irule {}
+#
+# Arguments:
+# rule - show be the command 'rule' 
+# name - the iRule name, cannot include partition
+# body - the body of the rule
+#
+# Side Effects:
+# None.
+#
+# Results:
+# None.
+proc ::testcl::ltm {rule name body} {
+  if {$rule eq "rule"} {
+    rule $name $body
+  }
+}
+
+# ::testcl::setvar --
+#
+# Set an iRule accessible variable within "it" case
+#
+# Arguments:
+# varName - The name of the variable
+# varValue - The data value to set
+#
+# Side Effects:
+# None.
+#
+# Results:
+# None.
+proc ::testcl::setvar {varName varValue} {
+  log::log debug "Setting iRule variable $varName with value $varValue"
+
+  variable variables
+  set variables($varName) $varValue
 }
 
 proc ::testcl::call args {
